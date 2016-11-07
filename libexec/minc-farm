@@ -206,7 +206,7 @@ merge_images() {
   MERGED_IMAGE_NAME=`echo $1 | md5sum | awk '{print $1}'`
   STACKED_IMAGES=`reverse_stack_images $1`
   cd $MINCS_IMAGES/
-  if !test -d $MERGED_IMAGE_NAME; then
+  if ! test -d $MERGED_IMAGE_NAME; then
     mkdir $MERGED_IMAGE_NAME
     export IFS=:
     for i in $STACKED_IMAGES; do
