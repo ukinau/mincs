@@ -174,4 +174,4 @@ cd /
 UNSHARE_OPT=
 # Enter new namespace and exec command
 [ "$MINC_NOPRIV" ] && UNSHARE_OPT=--map-root-user
-$IP_NETNS unshare $UNSHARE_OPT -iumpf $LIBEXEC/`basename $0` "$@"
+$IP_NETNS busybox unshare $UNSHARE_OPT -iumpf $LIBEXEC/`basename $0` "$@"
