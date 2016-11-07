@@ -190,10 +190,44 @@ i2uuid() { # image-id
   ls $MINCS_IMAGES/ | grep -m 1 ^"$1"
 }
 
+reverse_stack_images(){
+  export IFS=:
+  REVERSED_IMAGES=""
+  for i in $1; do
+    REVERSED_IMAGES="${i}:${REVERSED_IMAGES}"
+  done
+  export IFS=' '
+  REVERSED_IMAGES=`echo $REVERSED_IMAGES | sed -e 's/:$//g'`
+  echo $REVERSED_IMAGES
+}
+
+
+merge_images() {
+  MERGED_IMAGE_NAME=`echo $1 | md5sum | awk '{print $1}'`
+  STACKED_IMAGES=`reverse_stack_images $1`
+  cd $MINCS_IMAGES/
+  if !test -d $MERGED_IMAGE_NAME; then
+    mkdir $MERGED_IMAGE_NAME
+    export IFS=:
+    for i in $STACKED_IMAGES; do
+      cp -rf $i/*  $MERGED_IMAGE_NAME
+    done
+    export IFS=' '
+  fi
+  echo $MINCS_IMAGES/$MERGED_IMAGE_NAME
+}
+
+get_merged_image_name() {
+  echo $1 | md5sum | awk '{print $1}'
+}
+
 test $# -eq 0 && usage
 cmd=$1
 shift 1
 case $cmd in
+  i2uuid)
+  i2uuid $1
+  ;;
   lc|list)
   list_containers
   ;;
@@ -243,12 +277,24 @@ case $cmd in
   check_dir $MINCS_IMAGES `i2uuid $1`
   ;;
   imagestack) # IMID
-  fabricate `i2uuid $1`
+  UUID=`i2uuid $1`
+  STACKED=`fabricate $UUID`
+  MERGED_IMAGE_NAME=`get_merged_image_name $STACKED`
+  if test -d $MINCS_IMAGES/$MERGED_IMAGE_NAME; then
+    echo $MINCS_IMAGES/$MERGED_IMAGE_NAME
+  else
+    echo $STACKED
+  fi
   ;;
   baseid) # COID
   UUID=`c2uuid $1`
   DIR=`check_dir $MINCS_CONTAINERS $UUID`
   cat $DIR/baseid
+  ;;
+  merge_images)
+  UUID=`i2uuid $1`
+  STACKED=`fabricate $UUID`
+  merge_images $STACKED
   ;;
   *)
   exit 0
